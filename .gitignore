@@ -1,0 +1,6 @@
+# Logs et fichiers de diagnostic générés localement (hors du périmètre du projet)
+*.log
+vswhere_out.json
+
+# Config locale d'outils (Claude Code, etc.)
+.claude/

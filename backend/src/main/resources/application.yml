@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: home-butler
+
+  datasource:
+    url: jdbc:h2:file:./data/home-butler;AUTO_SERVER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+
+# --- Config MariaDB (à réactiver plus tard, une fois le POC validé) ---
+# spring:
+#   datasource:
+#     url: jdbc:mariadb://ADRESSE_DU_NAS:3306/home_butler
+#     username: home_butler_user
+#     password: change_me
+#     driver-class-name: org.mariadb.jdbc.Driver
+#   jpa:
+#     database-platform: org.hibernate.dialect.MariaDBDialect
+
+logging:
+  level:
+    sds.home.homebutler: DEBUG

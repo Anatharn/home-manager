@@ -1,0 +1,57 @@
+:root {
+  /* Palette : encre sur papier, un seul accent (vert billet) */
+  --color-paper: #F6F4EF;
+  --color-paper-raised: #FFFFFF;
+  --color-ink: #1E1D1B;
+  --color-ink-soft: #5C5A54;
+  --color-line: #DDD8CC;
+  --color-accent: #2F6F4E;
+  --color-accent-soft: #E4EEE8;
+  --color-negative: #A23B2E;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.amount {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.amount--negative {
+  color: var(--color-negative);
+}
+
+.amount--positive {
+  color: var(--color-accent);
+}

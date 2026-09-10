@@ -1,0 +1,18 @@
+[package]
+name = "home-butler"
+version = "0.0.1"
+description = "Gestion de comptes bancaires personnels"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[[bin]]
+name = "home-butler"
+path = "src/main.rs"

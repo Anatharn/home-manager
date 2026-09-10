@@ -1,0 +1,5 @@
+# Fichiers créés au runtime par le backend Spring embarqué (base H2), à ne
+# jamais surveiller par le watcher de `tauri dev` : sinon chaque écriture du
+# backend (lock file, etc.) est vue comme un changement de code source et
+# déclenche une boucle infinie de rebuild/relance de l'app.
+data/
