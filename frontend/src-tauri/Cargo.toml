@@ -1,6 +1,6 @@
 [package]
 name = "home-butler"
-version = "0.0.1"
+version = "0.1.0"
 description = "Gestion de comptes bancaires personnels"
 edition = "2021"
 

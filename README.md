@@ -94,6 +94,13 @@ Le script `scripts/build-all.sh` automatise le build du jar, sa copie dans les r
 
 Le binaire final se trouve dans `frontend/src-tauri/target/release/`.
 
+### Publier une release
+Le workflow `.github/workflows/release.yml` construit l'installateur Windows et crée une release GitHub en brouillon à chaque tag `v*` poussé :
+
+1. Mettre à jour la version dans `backend/pom.xml`, `frontend/package.json`, `frontend/src-tauri/tauri.conf.json` et `frontend/src-tauri/Cargo.toml` (le workflow refuse un tag qui ne correspond pas à `tauri.conf.json`).
+2. Committer, puis `git tag vX.Y.Z && git push origin main vX.Y.Z`.
+3. Relire la release brouillon dans l'onglet Releases de GitHub et la publier.
+
 ### Structure
 ```
 frontend/

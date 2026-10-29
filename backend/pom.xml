@@ -13,7 +13,7 @@
 
     <groupId>sds.home</groupId>
     <artifactId>home-butler</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>home-butler</name>
     <description>Application de gestion de comptes bancaires personnels</description>
 
