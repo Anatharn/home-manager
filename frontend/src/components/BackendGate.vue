@@ -5,6 +5,9 @@ import apiClient from "../api/client";
 // Tant que le backend Spring (lancé en process enfant par Tauri) n'a pas fini
 // de démarrer, le port 8080 ne répond pas. On patiente ici, en réessayant
 // régulièrement, plutôt que de laisser les vues planter sur une erreur réseau.
+// On ping /version (pas /comptes) : cet endpoint ne dépend pas de la base de
+// données, donc l'app reste utilisable (notamment la vue Configuration) même
+// si la base configurée est injoignable — voir bootstrap-mode: lazy côté backend.
 const PING_INTERVAL_MS = 600;
 const MAX_ATTEMPTS = 50; // ~30s avant d'abandonner et de proposer un réessai manuel
 
@@ -19,7 +22,7 @@ async function pingUntilReady() {
   while (attempt.value < MAX_ATTEMPTS) {
     attempt.value += 1;
     try {
-      await apiClient.get("/comptes", { timeout: 1500 });
+      await apiClient.get("/version", { timeout: 1500 });
       ready.value = true;
       return;
     } catch {

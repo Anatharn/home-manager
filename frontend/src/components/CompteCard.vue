@@ -8,16 +8,13 @@ defineProps({
     type: Array,
     default: () => [],
   },
+  typesCompte: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-defineEmits(["open", "delete", "change-banque"]);
-
-function formatMontant(valeur) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(valeur ?? 0);
-}
+defineEmits(["open", "delete", "change-banque", "change-type"]);
 </script>
 
 <template>
@@ -42,12 +39,17 @@ function formatMontant(valeur) {
       {{ compte.libelle }}
       <span v-if="compte.code" class="compte-card__code">{{ compte.code }}</span>
     </h3>
-    <p
-      class="compte-card__solde amount"
-      :class="Number(compte.solde) < 0 ? 'amount--negative' : 'amount--positive'"
+    <select
+      class="compte-card__type"
+      :value="compte.typeCompte?.id ?? ''"
+      @click.stop
+      @change="$emit('change-type', compte, $event.target.value || null)"
     >
-      {{ formatMontant(compte.solde) }}
-    </p>
+      <option value="">Sans type</option>
+      <option v-for="typeCompte in typesCompte" :key="typeCompte.id" :value="typeCompte.id">
+        {{ typeCompte.libelle }}
+      </option>
+    </select>
     <p v-if="compte.iban" class="compte-card__iban">{{ compte.iban }}</p>
   </article>
 </template>
@@ -111,9 +113,16 @@ function formatMontant(valeur) {
   margin-left: 4px;
 }
 
-.compte-card__solde {
-  font-size: 22px;
-  margin: 0 0 6px;
+.compte-card__type {
+  display: block;
+  font-size: 12px;
+  color: var(--color-ink-soft);
+  background: none;
+  border: none;
+  padding: 0 0 6px;
+  margin-left: -2px;
+  font-family: var(--font-body);
+  cursor: pointer;
 }
 
 .compte-card__iban {

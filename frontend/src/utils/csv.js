@@ -1,8 +1,8 @@
 // Petit parseur CSV (RFC 4180 minimal) : gere les champs entre guillemets contenant des
-// virgules ou des guillemets echappes (""), ce qu'un simple split(",") ne sait pas faire.
-// Necessaire ici car les releves bancaires exportent des montants du type "700,00 EUR"
-// (virgule decimale) dans un fichier par ailleurs delimite par des virgules.
-export function parseCsv(text) {
+// delimiteurs ou des guillemets echappes (""), ce qu'un simple split() ne sait pas faire.
+// Le delimiteur est parametrable car les extraits bancaires ne l'utilisent pas tous
+// (virgule, point-virgule, tabulation...) — voir formatsImportCsv.js.
+export function parseCsv(text, delimiteur = ",") {
   // Retire le BOM UTF-8 eventuel (fichiers exportes depuis Excel/Windows).
   if (text.charCodeAt(0) === 0xfeff) {
     text = text.slice(1);
@@ -30,7 +30,7 @@ export function parseCsv(text) {
     }
     if (c === '"') {
       inQuotes = true;
-    } else if (c === ",") {
+    } else if (c === delimiteur) {
       row.push(field);
       field = "";
     } else if (c === "\r") {
@@ -54,9 +54,11 @@ export function parseCsv(text) {
 
 // Transforme les lignes brutes en objets {entete: valeur}, a partir de la premiere ligne
 // utilisee comme en-tete. Les colonnes sans en-tete nomme (ex. la colonne "FALSE" de certains
-// exports) sont ignorees par nos mappings nommes.
-export function parseCsvAvecEntetes(text) {
-  const rows = parseCsv(text);
+// exports) sont ignorees par nos mappings nommes. "lignesAIgnorer" saute un nombre de lignes
+// avant l'en-tete (certains extraits bancaires commencent par quelques lignes d'informations
+// avant la vraie ligne d'en-tete).
+export function parseCsvAvecEntetes(text, delimiteur = ",", lignesAIgnorer = 0) {
+  const rows = parseCsv(text, delimiteur).slice(lignesAIgnorer);
   if (rows.length === 0) return { entetes: [], lignes: [] };
   const entetes = rows[0].map((h) => h.trim());
   const lignes = rows.slice(1).map((r) => {
@@ -69,21 +71,43 @@ export function parseCsvAvecEntetes(text) {
   return { entetes, lignes };
 }
 
-// "700,00 EUR" / "-1 350,92 EUR" -> 700 / -1350.92 (accepte aussi le symbole EUR)
-export function parseMontantFr(brut) {
+// "700,00 EUR" / "-1 350,92 EUR" -> 700 / -1350.92 (separateur decimal parametrable : certains
+// exports utilisent "1234.56" plutot que "1234,56").
+export function parseMontant(brut, separateurDecimal = ",") {
   if (!brut) return null;
   let s = String(brut).trim();
+  // retire tout sauf chiffres, signe et separateurs (espaces/symbole monetaire compris)
   s = s.replace(/[^0-9,.\-]/g, "");
-  s = s.replace(",", ".");
+  if (separateurDecimal === ",") {
+    s = s.replace(/\./g, "").replace(",", ".");
+  } else {
+    s = s.replace(/,/g, "");
+  }
   if (s === "" || s === "-") return null;
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
 }
 
-// "05/01/2026" -> "2026-01-05"
-export function parseDateFr(brut) {
-  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(brut ?? "").trim());
+// Parse une date selon un format a jetons dd/MM/yyyy (jetons "dd", "MM", "yyyy", separateur
+// libre parmi / - .), ex. "05/01/2026" avec "dd/MM/yyyy" -> "2026-01-05".
+export function parseDateAvecFormat(brut, format = "dd/MM/yyyy") {
+  const valeur = String(brut ?? "").trim();
+  if (!valeur) return null;
+
+  const jetons = format.match(/dd|MM|yyyy/g);
+  if (!jetons || jetons.length !== 3) return null;
+
+  const regexFormat = format
+    .replace(/[.]/g, "\\.")
+    .replace(/dd|MM|yyyy/g, (jeton) => (jeton === "yyyy" ? "(\\d{4})" : "(\\d{1,2})"));
+
+  const m = new RegExp(`^${regexFormat}$`).exec(valeur);
   if (!m) return null;
-  const [, j, mo, a] = m;
-  return `${a}-${mo.padStart(2, "0")}-${j.padStart(2, "0")}`;
+
+  const parJeton = {};
+  jetons.forEach((jeton, i) => {
+    parJeton[jeton] = m[i + 1];
+  });
+
+  return `${parJeton.yyyy}-${parJeton.MM.padStart(2, "0")}-${parJeton.dd.padStart(2, "0")}`;
 }

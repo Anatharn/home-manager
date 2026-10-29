@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import apiClient from "../api/client";
+import { messageFromError } from "../utils/errors";
 
 export const useChequesStore = defineStore("cheques", {
   state: () => ({
@@ -16,7 +17,7 @@ export const useChequesStore = defineStore("cheques", {
         const response = await apiClient.get("/cheques");
         this.cheques = response.data;
       } catch (err) {
-        this.error = "Impossible de charger les chèques. Le backend est-il démarré ?";
+        this.error = messageFromError(err, "Impossible de charger les chèques. Le backend est-il démarré ?");
       } finally {
         this.loading = false;
       }

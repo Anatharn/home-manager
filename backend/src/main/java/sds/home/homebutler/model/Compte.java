@@ -25,12 +25,22 @@ public class Compte {
     @Column(name = "code", nullable = false)
     private String code;
 
+    // Solde initial, saisi manuellement (point de départ avant le suivi des transactions).
     @Column(name = "solde", precision = 12, scale = 2)
     private BigDecimal solde;
+
+    // Solde courant = solde initial + somme des transactions. Calculé par CompteService,
+    // jamais persisté (voir @Transient).
+    @Transient
+    private BigDecimal soldeActuel;
 
     @ManyToOne
     @JoinColumn(name = "banque_id")
     private Banque banque;
+
+    @ManyToOne
+    @JoinColumn(name = "type_compte_id")
+    private TypeCompte typeCompte;
 
     // JsonIgnore : évite la boucle infinie Transaction -> Compte -> transactions -> Compte -> ...
     // lors de la sérialisation JSON (relation bidirectionnelle).
@@ -48,13 +58,14 @@ public class Compte {
     }
 
     public Compte(Long id, String libelle, String iban, String code, BigDecimal solde, Banque banque,
-                  List<Transaction> transactions, List<Cheque> cheques) {
+                  TypeCompte typeCompte, List<Transaction> transactions, List<Cheque> cheques) {
         this.id = id;
         this.libelle = libelle;
         this.iban = iban;
         this.code = code;
         this.solde = solde;
         this.banque = banque;
+        this.typeCompte = typeCompte;
         this.transactions = transactions;
         this.cheques = cheques;
     }
@@ -99,12 +110,28 @@ public class Compte {
         this.solde = solde;
     }
 
+    public BigDecimal getSoldeActuel() {
+        return soldeActuel;
+    }
+
+    public void setSoldeActuel(BigDecimal soldeActuel) {
+        this.soldeActuel = soldeActuel;
+    }
+
     public Banque getBanque() {
         return banque;
     }
 
     public void setBanque(Banque banque) {
         this.banque = banque;
+    }
+
+    public TypeCompte getTypeCompte() {
+        return typeCompte;
+    }
+
+    public void setTypeCompte(TypeCompte typeCompte) {
+        this.typeCompte = typeCompte;
     }
 
     public List<Transaction> getTransactions() {

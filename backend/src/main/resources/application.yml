@@ -1,39 +1,33 @@
 server:
   port: 8080
 
+app:
+  version: "@project.version@"
+
 spring:
+  # Profil actif par défaut : "dev" (H2 embarqué, voir application-dev.yml), pratique pour lancer
+  # le backend seul (mvn spring-boot:run) sans rien configurer. Le jar packagé pour l'app Tauri
+  # force explicitement le profil "prod" au lancement (voir spring_launcher.rs) : aucune base
+  # n'est fournie par défaut hors dev, voir application-prod.yml.
+  profiles:
+    active: dev
+
   application:
     name: home-butler
 
-  datasource:
-    url: jdbc:h2:file:./data/home-butler;AUTO_SERVER=TRUE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+  data:
+    jpa:
+      repositories:
+        # Bootstrap paresseux des repositories Spring Data (par défaut ils sont initialisés
+        # au démarrage). Complète le ddl-auto: none généré pour la config MariaDB (voir
+        # DatabaseConfigService) : c'est ce dernier qui évite le blocage au démarrage si la
+        # base est injoignable — ce réglage-ci ne fait qu'éviter un travail inutile en plus.
+        bootstrap-mode: lazy
 
   jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
     properties:
       hibernate:
         format_sql: true
-    database-platform: org.hibernate.dialect.H2Dialect
-
-# --- Config MariaDB (à réactiver plus tard, une fois le POC validé) ---
-# spring:
-#   datasource:
-#     url: jdbc:mariadb://ADRESSE_DU_NAS:3306/home_butler
-#     username: home_butler_user
-#     password: change_me
-#     driver-class-name: org.mariadb.jdbc.Driver
-#   jpa:
-#     database-platform: org.hibernate.dialect.MariaDBDialect
 
 logging:
   level:

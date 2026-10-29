@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import apiClient from "../api/client";
+import { messageFromError } from "../utils/errors";
 
 const TRI_DEFAUT = ["dateOperation,desc", "id,desc"];
 
@@ -7,7 +8,7 @@ export const useTransactionsStore = defineStore("transactions", {
   state: () => ({
     transactions: [], // contenu de la page courante uniquement
     page: 0,
-    size: 50,
+    size: 10,
     totalPages: 0,
     totalElements: 0,
     compteId: null,
@@ -37,7 +38,7 @@ export const useTransactionsStore = defineStore("transactions", {
         this.totalPages = response.data.page.totalPages;
         this.totalElements = response.data.page.totalElements;
       } catch (err) {
-        this.error = "Impossible de charger les transactions.";
+        this.error = messageFromError(err, "Impossible de charger les transactions.");
       } finally {
         this.loading = false;
       }

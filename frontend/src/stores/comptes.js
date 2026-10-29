@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import apiClient from "../api/client";
+import { messageFromError } from "../utils/errors";
 
 export const useComptesStore = defineStore("comptes", {
   state: () => ({
@@ -7,12 +8,6 @@ export const useComptesStore = defineStore("comptes", {
     loading: false,
     error: null,
   }),
-
-  getters: {
-    soldeTotal(state) {
-      return state.comptes.reduce((total, compte) => total + Number(compte.solde ?? 0), 0);
-    },
-  },
 
   actions: {
     async fetchComptes() {
@@ -22,7 +17,7 @@ export const useComptesStore = defineStore("comptes", {
         const response = await apiClient.get("/comptes");
         this.comptes = response.data;
       } catch (err) {
-        this.error = "Impossible de charger les comptes. Le backend est-il démarré ?";
+        this.error = messageFromError(err, "Impossible de charger les comptes. Le backend est-il démarré ?");
       } finally {
         this.loading = false;
       }

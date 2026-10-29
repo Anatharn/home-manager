@@ -3,37 +3,41 @@ import { onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useComptesStore } from "../stores/comptes";
 import { useBanquesStore } from "../stores/banques";
+import { useTypesCompteStore } from "../stores/typesCompte";
 import CompteCard from "../components/CompteCard.vue";
 
 const store = useComptesStore();
 const banquesStore = useBanquesStore();
+const typesCompteStore = useTypesCompteStore();
 const router = useRouter();
 
 const nouveauCompte = reactive({
   libelle: "",
   iban: "",
   code: "",
-  solde: 0,
   banqueId: "",
+  typeCompteId: "",
 });
 
 onMounted(() => {
   store.fetchComptes();
   banquesStore.fetchBanques();
+  typesCompteStore.fetchTypesCompte();
 });
 
 async function ajouterCompte() {
   if (!nouveauCompte.libelle || !nouveauCompte.code) return;
-  const { banqueId, ...champs } = nouveauCompte;
+  const { banqueId, typeCompteId, ...champs } = nouveauCompte;
   await store.createCompte({
     ...champs,
     banque: banqueId ? { id: banqueId } : null,
+    typeCompte: typeCompteId ? { id: typeCompteId } : null,
   });
   nouveauCompte.libelle = "";
   nouveauCompte.iban = "";
   nouveauCompte.code = "";
-  nouveauCompte.solde = 0;
   nouveauCompte.banqueId = "";
+  nouveauCompte.typeCompteId = "";
 }
 
 function ouvrirCompte(compte) {
@@ -51,28 +55,17 @@ function changerBanque(compte, banqueId) {
   });
 }
 
-function formatMontant(valeur) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(valeur ?? 0);
+function changerType(compte, typeCompteId) {
+  store.updateCompte(compte.id, {
+    ...compte,
+    typeCompte: typeCompteId ? { id: typeCompteId } : null,
+  });
 }
 </script>
 
 <template>
   <header class="page-header">
-    <div>
-      <h1>Comptes</h1>
-      <p class="page-header__solde">
-        Solde total :
-        <span
-          class="amount"
-          :class="store.soldeTotal < 0 ? 'amount--negative' : 'amount--positive'"
-        >
-          {{ formatMontant(store.soldeTotal) }}
-        </span>
-      </p>
-    </div>
+    <h1>Comptes</h1>
   </header>
 
   <p v-if="store.error" class="alert">{{ store.error }}</p>
@@ -84,9 +77,11 @@ function formatMontant(valeur) {
       :key="compte.id"
       :compte="compte"
       :banques="banquesStore.banques"
+      :types-compte="typesCompteStore.typesCompte"
       @open="ouvrirCompte"
       @delete="supprimerCompte"
       @change-banque="changerBanque"
+      @change-type="changerType"
     />
 
     <p v-if="!store.comptes.length" class="muted">
@@ -100,11 +95,16 @@ function formatMontant(valeur) {
       <input v-model="nouveauCompte.libelle" type="text" placeholder="Libellé (ex : Compte courant)" required />
       <input v-model="nouveauCompte.iban" type="text" placeholder="IBAN (optionnel)" />
       <input v-model="nouveauCompte.code" type="text" placeholder="Code" required />
-      <input v-model.number="nouveauCompte.solde" type="number" step="0.01" placeholder="Solde initial" />
       <select v-model="nouveauCompte.banqueId">
         <option value="">Sans banque</option>
         <option v-for="banque in banquesStore.banques" :key="banque.id" :value="banque.id">
           {{ banque.nom }}
+        </option>
+      </select>
+      <select v-model="nouveauCompte.typeCompteId">
+        <option value="">Sans type</option>
+        <option v-for="typeCompte in typesCompteStore.typesCompte" :key="typeCompte.id" :value="typeCompte.id">
+          {{ typeCompte.libelle }}
         </option>
       </select>
       <button type="submit">Ajouter</button>
@@ -121,11 +121,6 @@ function formatMontant(valeur) {
   font-family: var(--font-display);
   font-size: 30px;
   margin: 0 0 6px;
-}
-
-.page-header__solde {
-  color: var(--color-ink-soft);
-  margin: 0;
 }
 
 .comptes-grid {

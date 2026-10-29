@@ -26,7 +26,18 @@ pub fn start_spring(app: &AppHandle) {
 
     println!("[spring_launcher] démarrage du backend Spring depuis {:?}", jar_path);
 
-    match Command::new("java").arg("-jar").arg(&jar_path).spawn() {
+    let mut command = Command::new("java");
+    command.arg("-jar").arg(&jar_path);
+
+    // En debug (tauri dev), on laisse le backend sur son profil par défaut ("dev", H2 —
+    // voir application.yml). En build release, on force "prod" : la connexion doit venir de
+    // la configuration utilisateur (vue Configuration > Base de données), pas d'une base H2
+    // embarquée — voir application-prod.yml.
+    if !cfg!(debug_assertions) {
+        command.env("SPRING_PROFILES_ACTIVE", "prod");
+    }
+
+    match command.spawn() {
         Ok(child) => {
             let state = app.state::<SpringProcess>();
             *state.0.lock().unwrap() = Some(child);

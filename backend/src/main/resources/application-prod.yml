@@ -1,0 +1,31 @@
+# Profil de production (packagé Tauri, voir spring_launcher.rs) : aucune base par défaut.
+# La seule source de la datasource est le fichier config/datasource.properties, écrit par la
+# vue Configuration > Base de données (voir DatabaseConfigService) — s'il est absent, le
+# démarrage échoue volontairement (pas de repli silencieux sur H2) : l'utilisateur doit
+# configurer sa base avant de pouvoir utiliser l'application.
+spring:
+  # Surcharge de la datasource, écrite par la vue Configuration > Base de données (voir
+  # DatabaseConfigController / DatabaseConfigService). Importé UNIQUEMENT ici (pas dans
+  # application.yml) : si ce fichier restait importé pour tous les profils, ses propriétés que
+  # le profil "dev" ne fixe pas explicitement (ex. spring.jpa.database-platform) l'emporteraient
+  # quand même sur l'auto-détection H2 du profil dev, cassant le DDL (vécu : Hibernate générait
+  # du DDL MariaDB "ENGINE=InnoDB" contre la base H2 de dev).
+  config:
+    import: "optional:file:./config/datasource.properties"
+
+  datasource:
+    # H2 reste sur le classpath (utilisé par le profil dev) : sans "type" explicite, Spring Boot
+    # bascule silencieusement sur une base H2 en mémoire quand aucune "url" n'est configurée.
+    # Fixer le type force la vraie condition "pooled datasource" et fait donc échouer le
+    # démarrage (au lieu de ce repli silencieux) tant que config/datasource.properties n'a pas
+    # fourni d'URL.
+    type: com.zaxxer.hikari.HikariDataSource
+
+  h2:
+    console:
+      enabled: false
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none

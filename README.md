@@ -4,7 +4,7 @@ Application desktop de gestion de comptes bancaires personnels.
 
 - **Frontend** : Tauri + Vue (dossier `frontend/`, à venir)
 - **Backend** : Spring Boot + Maven (dossier `backend/`)
-- **Base de données** : H2 (fichier local, pour le POC) — bascule prévue vers MariaDB (distante, sur NAS) une fois le POC validé
+- **Base de données** : H2 (fichier local) en développement, MariaDB (distante) en production — voir profils Spring ci-dessous
 
 ## Backend
 
@@ -14,10 +14,16 @@ Application desktop de gestion de comptes bancaires personnels.
 
 > **Note (10/09/2026)** : le projet utilisait Lombok pour générer les accesseurs des entités, mais sous Java 25 l'annotation processing s'est montré non fiable (accesseurs manquants de façon intermittente, sans erreur de compilation visible — voir historique). Lombok a donc été retiré du projet : les entités déclarent désormais leurs getters/setters/constructeurs explicitement, et le projet cible Java 25 sans restriction.
 
-### Configuration
-Pour le POC, aucune configuration n'est nécessaire : la base H2 est stockée dans un fichier local (`backend/data/home-butler.mv.db`), créé automatiquement au premier démarrage.
+### Configuration — profils Spring
+Le profil actif par défaut est `dev` (voir `application.yml`) : aucune configuration n'est nécessaire, la base H2 est stockée dans un fichier local (`backend/data/home-butler.mv.db`), créé automatiquement au premier démarrage.
 
-Pour basculer plus tard vers MariaDB, décommenter le bloc `spring.datasource` / `spring.jpa` correspondant en bas de `application.yml` et supprimer (ou commenter) le bloc H2.
+Le profil `prod` (utilisé par le jar packagé pour l'app Tauri, voir `spring_launcher.rs`) n'a aucune base par défaut : la connexion MariaDB doit être renseignée depuis la vue Configuration > Base de données de l'app (ou en écrivant directement `backend/config/datasource.properties`, voir `DatabaseConfigService`). Sans cette configuration, le démarrage en profil `prod` échoue volontairement — c'est voulu, pour éviter qu'un déploiement sans base configurée ne bascule silencieusement sur H2.
+
+Pour lancer le backend seul avec le profil `prod` (ex. pour tester la connexion MariaDB sans passer par Tauri) :
+
+```bash
+SPRING_PROFILES_ACTIVE=prod mvn spring-boot:run
+```
 
 ### Lancer le backend
 Depuis le dossier `backend/` :
